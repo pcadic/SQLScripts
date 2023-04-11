@@ -14,11 +14,11 @@ GO
 
 /* Number of European born per state and per county, from the most populated county to the least */
 SELECT  [Stab], 
-		[County],
-		SUM([FBEurope])   AS [Number of European born]
-  FROM [dbo].[ZipCensus]
+        [County],
+        SUM([FBEurope])   AS [Number of European born]
+   FROM [dbo].[ZipCensus]
 GROUP BY [Stab], 
-	 [County]
+         [County]
 ORDER BY SUM([FBEurope]) DESC;
 GO
 
