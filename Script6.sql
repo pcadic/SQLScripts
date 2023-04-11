@@ -19,13 +19,13 @@ AS
 RETURN 
 (
 	SELECT a.[OrderId], 
-		   o.[OrderDate],  
-		   a.[MaxDate], 
-		   DATEDIFF(DAY,o.[OrderDate], a.[MaxDate]) as [Delay]
+	       o.[OrderDate],  
+	       a.[MaxDate], 
+	       DATEDIFF(DAY,o.[OrderDate], a.[MaxDate]) as [Delay]
 	FROM 
 		(
-			SELECT [OrderId], 
-				   MAX([ShipDate])  as [MaxDate]
+			SELECT  [OrderId], 
+                                MAX([ShipDate])  as [MaxDate]
 			FROM [dbo].[OrderLines]
 			GROUP BY [OrderId]
 		) a
@@ -59,12 +59,12 @@ BEGIN
 	AS
 	(
 	SELECT a.[OrderId], 
-		   DATEDIFF(DAY,a.[OrderDate], a.[MaxDate]) as [Delay]
+               DATEDIFF(DAY,a.[OrderDate], a.[MaxDate]) as [Delay]
 	FROM 
 		(
 			SELECT o.[OrderId], 
-				   o.[OrderDate], 
-				   MAX(ol.[ShipDate])  as [MaxDate]
+                               o.[OrderDate], 
+                               MAX(ol.[ShipDate])  as [MaxDate]
 			FROM [dbo].[Orders] o
 			JOIN [dbo].[OrderLines] ol on o.[OrderId] = ol.[OrderId]
 			GROUP BY o.[OrderId], o.[OrderDate]
@@ -99,12 +99,12 @@ AS
 RETURN 
 (
 SELECT ol.[ProductId], 
-	   ol.[TotalNumUnitSold]
+       ol.[TotalNumUnitSold]
 FROM
 (
 	SELECT  [ProductId], 
-		    SUM([NumUnits]) AS [TotalNumUnitSold],
-			ROW_NUMBER() OVER (ORDER BY SUM([NumUnits]) DESC) AS [TopRank]
+                SUM([NumUnits]) AS [TotalNumUnitSold], 
+                ROW_NUMBER() OVER (ORDER BY SUM([NumUnits]) DESC) AS [TopRank]
 	FROM [dbo].[OrderLines]
 	GROUP BY [ProductId]
 ) ol
@@ -133,11 +133,11 @@ RETURNS TABLE
 AS
 RETURN 
 (
-	SELECT [Stab] , 
-		   [County], 
-		   [TotPop], 
-		   [Over5], 
-		   ([OthLang]-[Spanish])*1.0/[Over5] AS [NonENSP]
+	SELECT [Stab],
+               [County], 
+               [TotPop], 
+               [Over5], 
+               ([OthLang]-[Spanish])*1.0/[Over5] AS [NonENSP]
 	FROM [dbo].[ZipCensus]
 	WHERE [Over5] != 0
 	  AND ([OthLang]-[Spanish])*1.0/[Over5] >= @nbLimit
@@ -161,22 +161,22 @@ GO
 CREATE FUNCTION A01087932_GetCountiesCloseLandArea
 (   
     @Area float = 0.0,
-	@nbCounties int = 10
+    @nbCounties int = 10
 )
 RETURNS TABLE 
 AS
 RETURN 
 (
 	SELECT a.[Stab], 
-		   a.[County], 
-		   a.[AreaSQMI]
+               a.[County], 
+               a.[AreaSQMI]
 	FROM
 		(
-		SELECT [Stab],
-			   [County], 
-			   [AreaSQMI], 
-			   ABS([AreaSQMI]-@Area) AS [DiffArea],
-			   ROW_NUMBER()  OVER ( ORDER BY ABS([AreaSQMI]-@Area) ASC) AS [Seq]
+		SELECT [Stab], 
+                       [County], 
+                       [AreaSQMI], 
+                       ABS([AreaSQMI]-@Area) AS [DiffArea], 
+                       ROW_NUMBER()  OVER ( ORDER BY ABS([AreaSQMI]-@Area) ASC) AS [Seq]
 		FROM [dbo].[ZipCensus]
 		) a
 	WHERE a.[Seq] <= @nbCounties
@@ -191,7 +191,7 @@ GO
 /*5.5 : Function A01087932_GetCustomerMinMaxPurchase(MinPurchase money, MaxPurchase money)*/
 /* Description : Returns the list of Customers that have placed an order whose amount is between MinPurchase and MaxPurchase */
 /* Parameters  : MinPurchase (money) :  Lowest purchase */
-/*			   : MaxPurchase (money) :  Highest purchase */
+/*             : MaxPurchase (money) :  Highest purchase */
 /* Call        : SELECT * FROM A01087932_GetCustomerMinMaxPurchase(19.63, 39.95);*/
 IF object_id(N'A01087932_GetCustomerMinMaxPurchase', N'IF') IS NOT NULL
     DROP FUNCTION A01087932_GetCustomerMinMaxPurchase;
@@ -199,17 +199,17 @@ GO
 
 CREATE FUNCTION A01087932_GetCustomerMinMaxPurchase
 (   
-    @MinPurchase money,
-	@MaxPurchase money
+    @MinPurchase money, 
+    @MaxPurchase money
 )
 RETURNS TABLE 
 AS
 RETURN 
 (
 	SELECT o.[CustomerId], 
-		   o.[OrderId],  
-		   o.[TotalPrice], 
-		   o.[OrderDate]
+               o.[OrderId], 
+               o.[TotalPrice], 
+               o.[OrderDate]
 	FROM [dbo].[Orders] o
 	WHERE o.[TotalPrice] BETWEEN @MinPurchase AND @MaxPurchase
 	AND o.[CustomerId] != 0
@@ -238,10 +238,11 @@ AS
 RETURN 
 (
 	SELECT [state], 
-		   [zcta5], 
-		   [ZIPName], 
-		   [County], 
-		   [Stab], [TotPop]
+               [zcta5], 
+               [ZIPName], 
+               [County],
+               [Stab], 
+               [TotPop]
 	FROM [dbo].[ZipCensus]
 	WHERE UPPER([County]) LIKE UPPER('%'+@NameCounty+'%')
 );
@@ -271,7 +272,7 @@ RETURN
 	SELECT *
 	FROM [dbo].[Subscribers]
 	WHERE ([StopDate] is NULL AND [StartDate] <= @cutoffDate) OR
-		  ([StopDate] IS NOT NULL AND [StopDate] >= @cutoffDate AND [StartDate] <= @cutoffDate)
+	      ([StopDate] IS NOT NULL AND [StopDate] >= @cutoffDate AND [StartDate] <= @cutoffDate)
 );
 GO
 
@@ -283,8 +284,8 @@ GO
 /*5.8 : Function A01087932_GetCountiesAroundAPoint(Latitude float, Longitude float, Radius int)*/
 /* Description : Returns the Counties that are around a certain distance (radius) from a Point(Latitude,Longitude) */
 /* Parameters  : Latitude (float)  : Latitude*/
-/*			   : Longitude (float) : Longitude*/
-/*			   : Radius (int) : Radius - distance from the point*/
+/*             : Longitude (float) : Longitude*/
+/*	       : Radius (int) : Radius - distance from the point*/
 /* Call        : SELECT * FROM A01087932_GetCountiesAroundAPoint(39.8, -98.6, 10);*/
 IF object_id(N'A01087932_GetCountiesAroundAPoint', N'IF') IS NOT NULL
     DROP FUNCTION A01087932_GetCountiesAroundAPoint;
@@ -292,9 +293,9 @@ GO
 
 CREATE FUNCTION A01087932_GetCountiesAroundAPoint
 (   
-    @LatitudeP  float,
-	@LongitudeP float, 
-	@Radius		int 
+    @LatitudeP  float, 
+    @LongitudeP float, 
+    @Radius     int 
 )
 RETURNS @retFindResultSet TABLE   
 (  
@@ -302,9 +303,9 @@ RETURNS @retFindResultSet TABLE
     [zcta5] varchar(255),  
     [ZipName] varchar(255),  
     [County] varchar(255), 
-    [Longitude] float,  
-	[Latitude] float,
-	[Distance] numeric 
+    [Longitude] float, 
+    [Latitude] float, 
+    [Distance] numeric 
 )  
 AS
 BEGIN
@@ -314,24 +315,23 @@ BEGIN
 	WITH CTE_GeoDT
 	AS
 	(
-	SELECT 
-		zc.*,
+	SELECT  zc.*,
 		geography::Point(zc.[Latitude], zc.[Longitude], @SRID_FOOT) AS [Point]
 	FROM [dbo].[ZipCensus] zc
 	)
 	
 	INSERT @retFindResultSet  
 	SELECT a.[Stab], 
-		   a.[zcta5], 
-		   a.[ZipName], 
-		   a.[County], 
-		   a.[Longitude], 
-		   a.[Latitude], 
-		   FORMAT(a.[Distance],'N2') AS [Distance]
+               a.[zcta5], 
+               a.[ZipName], 
+               a.[County], 
+               a.[Longitude], 
+               a.[Latitude], 
+               FORMAT(a.[Distance],'N2') AS [Distance]
 	FROM 
 	(
-		SELECT	c.*,
-				c.[Point].STDistance(@CENTER_POINT_F) / 5280  as [Distance]
+		SELECT	c.*, 
+                        c.[Point].STDistance(@CENTER_POINT_F) / 5280  as [Distance]
 		FROM CTE_GeoDT c
 	) a
 	WHERE a.[Distance] < @Radius;
@@ -360,13 +360,13 @@ RETURNS TABLE
 AS
 RETURN 
 (
-	SELECT FORMAT(SUM([TotPop]),'N0')    AS [Total State Population],
-		   FORMAT(AVG([TotPop]),'N0')    AS [Average County Population],
-		   FORMAT(MIN([TotPop]),'N0')    AS [Smallest County],
-		   FORMAT(MAX([TotPop]),'N0')    AS [Biggest County],
-		   FORMAT(COUNT([zcta5]),'N0')   AS [Number of County],
-		   FORMAT(VARP([TotPop]),'N2')   AS [Population Variance],
-		   FORMAT(STDEVP([TotPop]),'N2') AS [Population Standard Deviation]
+	SELECT FORMAT(SUM([TotPop]),'N0')    AS [Total State Population], 
+               FORMAT(AVG([TotPop]),'N0')    AS [Average County Population], 
+               FORMAT(MIN([TotPop]),'N0')    AS [Smallest County], 
+               FORMAT(MAX([TotPop]),'N0')    AS [Biggest County],
+               FORMAT(COUNT([zcta5]),'N0')   AS [Number of County], 
+               FORMAT(VARP([TotPop]),'N2')   AS [Population Variance], 
+               FORMAT(STDEVP([TotPop]),'N2') AS [Population Standard Deviation]
 	FROM [dbo].[ZipCensus]
 	WHERE [Stab] = @StabP
 
@@ -395,7 +395,7 @@ AS
 RETURN 
 (
 	SELECT MONTH([OrderDate])           AS [MonthOrder], 
-		   COUNT(DISTINCT [CustomerId]) AS [Number Of Customers]
+               COUNT(DISTINCT [CustomerId]) AS [Number Of Customers]
 	FROM [dbo].[Orders]
 	WHERE YEAR([OrderDate]) = @FocusYear
 	GROUP BY MONTH([OrderDate])
