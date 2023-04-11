@@ -3,10 +3,10 @@ GO
 
 
 /* 1: Add auxiliary data : IsGenreFemale, IsGenreMale and IsGenreUnknown*/ 
-SELECT	c.[CustomerId], 
-		IIF(c.[Gender] = 'F', 100, 0) AS [IsGenreFemale],
-		IIF(c.[Gender] = 'M', 100, 0) AS [IsGenreMale],
-		IIF(LEN(c.[Gender]) <> 1 , 100, 0) AS [IsGenreUnknown]
+SELECT	c.[CustomerId],
+        IIF(c.[Gender] = 'F', 100, 0) AS [IsGenreFemale],
+        IIF(c.[Gender] = 'M', 100, 0) AS [IsGenreMale],
+        IIF(LEN(c.[Gender]) <> 1 , 100, 0) AS [IsGenreUnknown]
 FROM [dbo].[Customers] c
 ORDER BY c.[CustomerId];
 GO
@@ -31,9 +31,9 @@ AS
 	SELECT FORMAT(AVG(IIF(LEN(c.[Gender]) <> 1 , 100.0, 0)), 'N2') AS [Average Genre Unknown]
 	FROM [dbo].[Customers] c
 )
-SELECT	[Average Genre Male],
-		[Average Genre Female],	
-		[Average Genre Unknown]
+SELECT	[Average Genre Male], 
+        [Average Genre Female],
+        [Average Genre Unknown]
 FROM CTE_Male, CTE_Female, CTE_Unknown;
 GO
 
@@ -43,18 +43,18 @@ WITH CTE_PricePerType
 AS
 (
 	SELECT [OrderId],
-			CASE [PaymentType]
-				WHEN 'AE' THEN 'American Express'
-				WHEN 'DB' THEN 'Debit'
-				WHEN 'MC' THEN 'Mastercard'
-				WHEN 'VI' THEN 'Visa'
-				ELSE 'Other' 
-			END AS [Payment Type],
-			[TotalPrice]
+               CASE [PaymentType]
+                   WHEN 'AE' THEN 'American Express'
+                   WHEN 'DB' THEN 'Debit'
+                   WHEN 'MC' THEN 'Mastercard'
+                   WHEN 'VI' THEN 'Visa'
+                   ELSE 'Other'
+               END AS [Payment Type],
+               [TotalPrice]
 	FROM [dbo].[Orders]
 )
-SELECT [Payment Type],
-		SUM([TotalPrice]) AS [Sum Total Price]
+SELECT [Payment Type], 
+       SUM([TotalPrice]) AS [Sum Total Price]
 FROM CTE_PricePerType
 GROUP BY [Payment Type]
 ORDER BY [Payment Type];
@@ -64,14 +64,14 @@ GO
 WITH CTE_OrderAndState (OrderId, ZipCode, Stab)
 AS
 (
-	SELECT o.[OrderId],
-		   o.[ZipCode],
-		   ISNULL(z.[Stab],'Undefined ZipCode')
+	SELECT o.[OrderId], 
+               o.[ZipCode],
+               ISNULL(z.[Stab],'Undefined ZipCode')
 	FROM [dbo].[Orders] o
 	LEFT OUTER JOIN [dbo].[ZipCensus] z ON o.[ZipCode] = z.[zcta5]
 )
-SELECT Stab,
-	   COUNT(*) AS [Number of orders]
+SELECT Stab, 
+       COUNT(*) AS [Number of orders]
 FROM CTE_OrderAndState
 GROUP BY Stab
 HAVING COUNT(*) >= 5000
@@ -84,10 +84,10 @@ GO
 WITH CTE_ProductShipYear (ProductID, y2009, y2010, y2011)
 AS
 (
-	SELECT ol.[ProductID],   
-			SUM(IIF(YEAR(ol.[ShipDate]) = 2009, 1,NULL)),
-			SUM(IIF(YEAR(ol.[ShipDate]) = 2010, 1,NULL)),
-			SUM(IIF(YEAR(ol.[ShipDate]) = 2011, 1,NULL))
+	SELECT ol.[ProductID], 
+               SUM(IIF(YEAR(ol.[ShipDate]) = 2009, 1,NULL)), 
+               SUM(IIF(YEAR(ol.[ShipDate]) = 2010, 1,NULL)), 
+               SUM(IIF(YEAR(ol.[ShipDate]) = 2011, 1,NULL))
 	FROM [dbo].[OrderLines] ol
 	WHERE YEAR(ol.[ShipDate]) IN (2009, 2010, 2011)
 	GROUP BY ol.[ProductId]
@@ -102,8 +102,8 @@ GO
 SELECT 'Count' AS [Campaign Channel], pvt.[WEB], pvt.[AD], pvt.[MAIL], pvt.[REFERRAL]
 FROM 
 (
-	SELECT o.[OrderId],
-		   c.[Channel]
+	SELECT o.[OrderId], 
+               c.[Channel]
 	FROM [dbo].[Orders] o
 	JOIN [dbo].[Campaigns] c ON o.[CampaignId] = c.[CampaignId]
 ) AS sdata
@@ -118,8 +118,8 @@ GO
 
 
 /* 7: Add Additional Data : order week end Percent */
-SELECT o.[OrderId],
-		IIF(c.[DOW] = 'Sat' OR c.[DOW] = 'Sun',100.0,0) AS [Weekend Order]
+SELECT o.[OrderId], 
+       IIF(c.[DOW] = 'Sat' OR c.[DOW] = 'Sun',100.0,0) AS [Weekend Order]
 FROM [dbo].[Orders] o
 JOIN [dbo].[Calendar] c ON o.[OrderDate] = c.[Date];
 GO
@@ -129,18 +129,18 @@ GO
 WITH CTE_WeekendOrder (OrderId, State, [Weekend Order])
 AS
 (
-	SELECT  o.[OrderId],
-			o.[State],
-			IIF(c.[DOW] = 'Sat' OR c.[DOW] = 'Sun',100.0,0)
+	SELECT  o.[OrderId], 
+                o.[State], 
+                IIF(c.[DOW] = 'Sat' OR c.[DOW] = 'Sun',100.0,0)
 	FROM [dbo].[Orders] o
 	JOIN [dbo].[Calendar] c ON o.[OrderDate] = c.[Date]
 	WHERE o.[State] IN (
-						SELECT DISTINCT [Stab] 
-						FROM [dbo].[ZipCensus]
-						)
+				SELECT DISTINCT [Stab] 
+				FROM [dbo].[ZipCensus]
+                           )
 )
 SELECT State, 
-	   FORMAT(AVG([Weekend Order]), 'N2') AS [Avg. Num. of Weekend Order]
+       FORMAT(AVG([Weekend Order]), 'N2') AS [Avg. Num. of Weekend Order]
 FROM CTE_WeekendOrder
 GROUP BY State
 ORDER BY [Avg. Num. of Weekend Order] DESC;
@@ -151,18 +151,18 @@ GO
 WITH CTE_OrderPriceCategory
 As
 (
-	SELECT o.[OrderId],
-		CASE
-			WHEN [TotalPrice] = 0                            THEN 'Free Orders'
-			WHEN [TotalPrice] > 0    AND TotalPrice <= 10    THEN 'Under $10'
-			WHEN [TotalPrice] > 10   AND TotalPrice <= 100   THEN 'Under $100'
-			WHEN [TotalPrice] > 100  AND TotalPrice <= 1000  THEN 'Under $1000'
-			WHEN [TotalPrice] > 1000 AND TotalPrice <= 10000 THEN 'Under $10000'
-		END AS [Price Category]
+	SELECT o.[OrderId], 
+               CASE
+                  WHEN [TotalPrice] = 0                            THEN 'Free Orders'
+                  WHEN [TotalPrice] > 0    AND TotalPrice <= 10    THEN 'Under $10'
+                  WHEN [TotalPrice] > 10   AND TotalPrice <= 100   THEN 'Under $100'
+                  WHEN [TotalPrice] > 100  AND TotalPrice <= 1000  THEN 'Under $1000'
+                  WHEN [TotalPrice] > 1000 AND TotalPrice <= 10000 THEN 'Under $10000'
+               END AS [Price Category]
 	FROM [dbo].[Orders] o
 )
-SELECT [Price Category],
-		COUNT(OrderId) AS [Number of Orders]
+SELECT [Price Category], 
+       COUNT(OrderId) AS [Number of Orders]
 FROM CTE_OrderPriceCategory
 GROUP BY [Price Category]
 ORDER BY [Price Category];
@@ -173,13 +173,13 @@ GO
 WITH CTE_SubscriverPerLoyalty
 AS
 (
-  SELECT [SubscriberID],
-		DATEDIFF (YEAR, [StartDate], ISNULL([StopDate],getDate())) AS [Year Loyalty] 
+  SELECT [SubscriberID], 
+         DATEDIFF (YEAR, [StartDate], ISNULL([StopDate],getDate())) AS [Year Loyalty] 
   From [dbo].[Subscribers]
   WHERE [SubscriberID] < 10000
  )
- SELECT [Year Loyalty]		AS [Loyalty Year],
-		COUNT(SubscriberID) AS [Number of Subscribers]
+ SELECT [Year Loyalty]      AS [Loyalty Year],
+        COUNT(SubscriberID) AS [Number of Subscribers]
  FROM CTE_SubscriverPerLoyalty
  GROUP BY [Year Loyalty]
  ORDER BY [Year Loyalty];
@@ -189,17 +189,17 @@ AS
 WITH CTE_ChannelEffect
 AS 
 (
-  SELECT c.[Channel], 
-		AVG(IIF(YEAR(o.[OrderDate]) = 2013, o.[TotalPrice], NULL)) AS [y2013],
-		AVG(IIF(YEAR(o.[OrderDate]) = 2014, o.[TotalPrice], NULL)) AS [y2014],
-		AVG(IIF(YEAR(o.[OrderDate]) = 2015, o.[TotalPrice], NULL)) AS [y2015],
-		AVG(IIF(YEAR(o.[OrderDate]) = 2016, o.[TotalPrice], NULL)) AS [y2016]		
+  SELECT c.[Channel],
+         AVG(IIF(YEAR(o.[OrderDate]) = 2013, o.[TotalPrice], NULL)) AS [y2013],
+         AVG(IIF(YEAR(o.[OrderDate]) = 2014, o.[TotalPrice], NULL)) AS [y2014],
+         AVG(IIF(YEAR(o.[OrderDate]) = 2015, o.[TotalPrice], NULL)) AS [y2015],
+         AVG(IIF(YEAR(o.[OrderDate]) = 2016, o.[TotalPrice], NULL)) AS [y2016]		
   FROM [dbo].[Campaigns] c
   JOIN [dbo].[Orders] o ON c.[CampaignId] = o.[CampaignId]
   GROUP BY c.[Channel]
 )
-SELECT Channel, 
-	   COALESCE([y2013],[y2014],[y2015],[y2016]) AS [First Performance]
+SELECT Channel,
+       COALESCE([y2013],[y2014],[y2015],[y2016]) AS [First Performance]
 FROM CTE_ChannelEffect;
 GO
 
@@ -208,9 +208,9 @@ GO
 SELECT pvt.Stab, pvt.[AE], pvt.[VI], pvt.[DB], pvt.[MC], pvt.[OC]
 FROM 
 (
-	SELECT z.[Stab], 
-		   IIF(o.[PaymentType] = '??', 'OC', o.[PaymentType]) AS [PaymentType],
-		   o.[TotalPrice]
+	SELECT z.[Stab],
+               IIF(o.[PaymentType] = '??', 'OC', o.[PaymentType]) AS [PaymentType],
+               o.[TotalPrice]
 	FROM [dbo].[Orders] o
 	JOIN [dbo].[ZipCensus] z ON o.[ZipCode] = z.[zcta5]
 ) AS sdata
