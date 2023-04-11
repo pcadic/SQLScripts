@@ -48,11 +48,11 @@ WHERE zco.ZipCode IS NULL;
 /* Solution: Removal of the orphan records */
 
 SELECT o.*
-   FROM [dbo].[Orders] o
-   LEFT JOIN [dbo].[ZipCensus] z
-   ON z.zcta5 = o.ZipCode
-   WHERE z.zcta5 IS NULL
-   ORDER BY o.ZipCode;
+FROM [dbo].[Orders] o
+LEFT JOIN [dbo].[ZipCensus] z
+ON z.zcta5 = o.ZipCode
+WHERE z.zcta5 IS NULL
+ORDER BY o.ZipCode;
 
 DELETE FROM o
 FROM [dbo].[Orders] o
@@ -68,17 +68,17 @@ WHERE z.zcta5 IS NULL;
 /* Solution: Removal of the orphan records */
 
 SELECT ol.*
-   FROM [dbo].[Orders] od
-   RIGHT JOIN [dbo].[OrderLines] ol
-   ON od.OrderId = ol.OrderId
-   WHERE od.OrderId IS NULL
-   ORDER BY ol.OrderId, ol.OrderLineId;
+FROM [dbo].[Orders] od
+RIGHT JOIN [dbo].[OrderLines] ol
+ON od.OrderId = ol.OrderId
+WHERE od.OrderId IS NULL
+ORDER BY ol.OrderId, ol.OrderLineId;
 
 DELETE FROM ol
-   FROM [dbo].[Orders] od
-   RIGHT JOIN [dbo].[OrderLines] ol
-   ON od.OrderId = ol.OrderId
-   WHERE od.OrderId IS NULL;
+FROM [dbo].[Orders] od
+RIGHT JOIN [dbo].[OrderLines] ol
+ON od.OrderId = ol.OrderId
+WHERE od.OrderId IS NULL;
 
 
 
@@ -91,9 +91,9 @@ DELETE FROM ol
 SELECT o.[CustomerId]
 FROM [dbo].[Orders] o
 WHERE o.[CustomerId] NOT IN (
-							SELECT c.[CustomerId]
-							FROM [dbo].[Customers] c
-							);
+                               SELECT c.[CustomerId]
+                               FROM [dbo].[Customers] c
+                            );
 
 INSERT INTO [dbo].[Customers] (CustomerId, HouseholdId, Gender, FirstName)
 VALUES (0,0,' ',' ');  
@@ -101,8 +101,7 @@ VALUES (0,0,' ',' ');
 
 /*
 
-SELECT 
-	o.[State],
+SELECT 	o.[State],
 	YEAR(o.OrderDate),
 	COUNT(*),
 	ROW_NUMBER() OVER (PARTITION BY o.[State] ORDER BY COUNT(*) DESC)
