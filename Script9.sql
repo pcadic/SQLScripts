@@ -6,13 +6,13 @@ USE SQLBook;
 DECLARE @YearOfStudy INT = 2014;
 DECLARE @AverageOrderTotalPrice FLOAT = 100.0;
 
-SELECT	c.[Channel],
-		AVG(IIF(o.[TotalPrice] > @AverageOrderTotalPrice, 1.0, 0))	AS HighOrderProbability,
-		SUM(IIF(o.[TotalPrice] > @AverageOrderTotalPrice, 1, 0))	AS NumHighOrder,
-		SUM(IIF(o.[TotalPrice] > @AverageOrderTotalPrice, 0, 1))	AS NumNotHighOrder
+SELECT	c.[Channel], 
+        AVG(IIF(o.[TotalPrice] > @AverageOrderTotalPrice, 1.0, 0))	AS HighOrderProbability, 
+        SUM(IIF(o.[TotalPrice] > @AverageOrderTotalPrice, 1, 0))	AS NumHighOrder, 
+        SUM(IIF(o.[TotalPrice] > @AverageOrderTotalPrice, 0, 1))	AS NumNotHighOrder
 FROM [dbo].[Orders] o
-	JOIN [dbo].[Campaigns] c ON c.[CampaignId] = o.[CampaignId]
-	WHERE YEAR(o.[OrderDate]) = @YearOfStudy
+JOIN [dbo].[Campaigns] c ON c.[CampaignId] = o.[CampaignId]
+WHERE YEAR(o.[OrderDate]) = @YearOfStudy
 GROUP BY [Channel]
 ORDER BY [Channel];
 GO
@@ -24,24 +24,24 @@ WITH
 cteData
 AS (
 	SELECT	o.[OrderId], 
-			o.[TotalPrice], 
-			IIF(o.[PaymentType] = '??' OR o.[PaymentType] = 'OC','Other',o.[PaymentType]) AS [PaymentType], 
-			c.[Channel]
+                o.[TotalPrice], 
+                IIF(o.[PaymentType] = '??' OR o.[PaymentType] = 'OC','Other',o.[PaymentType]) AS [PaymentType], 
+                c.[Channel]
 	FROM [dbo].[Orders] o
 	JOIN [dbo].[Campaigns] c on c.[CampaignId] = o.[CampaignId]
 	WHERE YEAR(o.[OrderDate]) = @YearOfStudy
 ),
 dimChannel 
 AS (
-	SELECT [Channel],
-		   AVG(IIF([TotalPrice] > @AverageOrderTotalPrice, 1.0, 0)) AS p
+	SELECT [Channel], 
+               AVG(IIF([TotalPrice] > @AverageOrderTotalPrice, 1.0, 0)) AS p
 	FROM cteData
 	GROUP BY [Channel]
 ),
 dimPayment 
 AS (
-	SELECT [PaymentType],
-		   AVG(IIF([TotalPrice] > @AverageOrderTotalPrice, 1.0, 0)) AS p
+	SELECT [PaymentType], 
+               AVG(IIF([TotalPrice] > @AverageOrderTotalPrice, 1.0, 0)) AS p
 	FROM cteData
 	GROUP BY [PaymentType]
 ),
@@ -51,24 +51,24 @@ AS (
 	FROM cteData
 ),
 actual AS (
-	SELECT [Channel], [PaymentType],
-		   AVG(IIF([TotalPrice] > @AverageOrderTotalPrice, 1.0, 0)) AS p
+	SELECT [Channel], [PaymentType], 
+               AVG(IIF([TotalPrice] > @AverageOrderTotalPrice, 1.0, 0)) AS p
 	FROM cteData
 	GROUP BY [Channel], [PaymentType]
 )
 SELECT
-	[Channel],		[Predicted Probability per Channel],
-	[PaymentType],	[Predicted Probability per Payment Type],
+	[Channel], [Predicted Probability per Channel],
+	[PaymentType], [Predicted Probability per Payment Type],
 	[Overall Probability],
 	[Predicted Probability],
 	[Actual Probability]
 FROM (
 	SELECT
-		dimC.[Channel],		dimC.p				AS [Predicted Probability per Channel], 
-		dimP.[PaymentType],	dimP.p				AS [Predicted Probability per Payment Type],
-		o.p										AS [Overall Probability],
-		POWER(o.p, -1) * dimC.p * dimP.p		AS [Predicted Probability],
-		a.p										AS [Actual Probability]
+		dimC.[Channel],		dimC.p	        AS [Predicted Probability per Channel], 
+		dimP.[PaymentType],	dimP.p		AS [Predicted Probability per Payment Type],
+		o.p					AS [Overall Probability],
+		POWER(o.p, -1) * dimC.p * dimP.p	AS [Predicted Probability],
+		a.p					AS [Actual Probability]
 	FROM dimChannel dimC
 	CROSS JOIN dimPayment dimP
 	CROSS JOIN overall o
@@ -93,7 +93,7 @@ WITH
 [lookup] 
 AS (
     SELECT	[ProductId], 
-			[DOWint]
+                [DOWint]
     FROM (
         SELECT
             ol.[ProductId], 
@@ -110,8 +110,8 @@ AS (
 ),
 [actuals] 
 AS (
-    SELECT	[ProductId], 
-			[DOWint]
+    SELECT   [ProductId],  
+             [DOWint]
     FROM (
         SELECT
             ol.[ProductId], 
@@ -152,14 +152,14 @@ WITH
 CTEorder
 AS (
 	SELECT	o.[OrderDate], o.[OrderId], 
-			IIF(c.[DOWint] = 1 OR c.[DOWint] = 7, 'Weekend', 'Weekday') as [Week] 
+                IIF(c.[DOWint] = 1 OR c.[DOWint] = 7, 'Weekend', 'Weekday') as [Week] 
 	FROM [dbo].[Orders] o
 	JOIN [dbo].[Calendar] c ON c.Date = o.[OrderDate]
 ),
 [lookup] 
 AS (
-    SELECT	[ProductId], 
-			[Week]
+    SELECT   [ProductId], 
+             [Week]
     FROM (
         SELECT
             ol.[ProductId], 
@@ -175,8 +175,8 @@ AS (
 ),
 [actuals] 
 AS (
-    SELECT	[ProductId], 
-			[Week]
+    SELECT   [ProductId], 
+             [Week]
     FROM (
         SELECT
             ol.[ProductId], 
@@ -217,32 +217,32 @@ DECLARE @YEAR VARCHAR(4) = '2015';
 WITH
 [lookup] 
 AS (
-    SELECT	[ZipCode],
-			[PaymentType]
+    SELECT   [ZipCode], 
+             [PaymentType]
     FROM (
         SELECT	[ZipCode],
-				[PaymentType],				
-				COUNT(*) AS cnt,
-				ROW_NUMBER() OVER (PARTITION BY [ZipCode] ORDER BY COUNT(*) DESC) AS seq
-		FROM [dbo].[Orders]
+		[PaymentType],				
+		COUNT(*) AS cnt,
+		ROW_NUMBER() OVER (PARTITION BY [ZipCode] ORDER BY COUNT(*) DESC) AS seq
+	FROM [dbo].[Orders]
         WHERE [OrderDate] < @YEAR + '-01-01'
-		AND [PaymentType] NOT IN ('OC','??')
+	AND [PaymentType] NOT IN ('OC','??')
         GROUP BY  [ZipCode], [PaymentType]
     ) t 
     WHERE seq = 1
 ),
 [actuals] 
 AS (
-    SELECT	[ZipCode],
-			[PaymentType]
+    SELECT   [ZipCode], 
+             [PaymentType]
     FROM (
         SELECT	[ZipCode],
-				[PaymentType],				
-				COUNT(*) AS cnt,
-				ROW_NUMBER() OVER (PARTITION BY [ZipCode] ORDER BY COUNT(*) DESC) AS seq
-		FROM [dbo].[Orders]
+		[PaymentType],				
+		COUNT(*) AS cnt,
+		ROW_NUMBER() OVER (PARTITION BY [ZipCode] ORDER BY COUNT(*) DESC) AS seq
+	FROM [dbo].[Orders]
         WHERE [OrderDate] >= @YEAR + '-01-01'
-		AND [PaymentType] NOT IN ('OC','??')
+	AND [PaymentType] NOT IN ('OC','??')
         GROUP BY  [ZipCode], [PaymentType]
     ) t 
     WHERE seq = 1
@@ -283,13 +283,13 @@ RETURN
 (
 	SELECT  [State], [PaymentType]
 	FROM	(
-				SELECT	[State], [PaymentType], 
-						COUNT(*) AS ctn,
-						ROW_NUMBER () OVER (PARTITION BY [State] ORDER BY COUNT(*) DESC) AS seq
-				FROM [dbo].[Orders]
-				WHERE [OrderDate] < @cutoffdate
-				GROUP BY [State], [PaymentType]
-			) spt
+			SELECT	[State], [PaymentType], 
+                                COUNT(*) AS ctn, 
+                                ROW_NUMBER () OVER (PARTITION BY [State] ORDER BY COUNT(*) DESC) AS seq
+			FROM [dbo].[Orders]
+			WHERE [OrderDate] < @cutoffdate
+			GROUP BY [State], [PaymentType]
+		) spt
 	WHERE seq = 1
 );
 GO
@@ -307,11 +307,11 @@ RETURN
 	SELECT  [State], [GroupName]
 	FROM	(
 				SELECT	[State], [GroupName], 
-						COUNT(*) AS ctn,
-						ROW_NUMBER () OVER (PARTITION BY [State] ORDER BY COUNT(*) DESC) AS seq
+                                        COUNT(*) AS ctn, 
+                                        ROW_NUMBER () OVER (PARTITION BY [State] ORDER BY COUNT(*) DESC) AS seq
 				FROM [dbo].[Orders] o
 				JOIN [dbo].[OrderLines] ol	ON ol.[OrderId] = o.[OrderId]
-				JOIN Products p				ON p.[ProductId] = ol.[ProductId]
+				JOIN Products p			ON p.[ProductId] = ol.[ProductId]
 				WHERE [OrderDate] < @cutoffdate
 				GROUP BY [State], [GroupName]
 			) spt
@@ -330,11 +330,11 @@ RETURNS TABLE
 AS
 RETURN
 (
-	SELECT  o.[State],
-			COUNT(o.[OrderId])				AS [Number of Orders],
-			SUM(o.[TotalPrice])				AS [Total Price Order],
-			AVG(o.[TotalPrice])				AS [Average Price Order],
-			COUNT(c.HouseholdId)	AS [Nb HouseholdId]
+	SELECT  o.[State], 
+                COUNT(o.[OrderId])	AS [Number of Orders],
+		SUM(o.[TotalPrice])	AS [Total Price Order],
+		AVG(o.[TotalPrice])	AS [Average Price Order],
+		COUNT(c.HouseholdId)	AS [Nb HouseholdId]
 	FROM [dbo].[Orders] o
 	JOIN [Customers] c ON c.[CustomerId] = o.[CustomerId]
 	WHERE [OrderDate] < @cutoffdate
@@ -352,9 +352,9 @@ RETURNS TABLE
 AS
 RETURN
 (
-SELECT	A.[State], A.[Number of Orders], A.[Total Price Order], A.[Average Price Order], A.[Nb HouseholdId],
-		B.[PaymentType] AS [TopUsedPayment], D.[GroupName] AS [Top Product],
-		@cutoffdate AS [Cutoff Date]
+SELECT	A.[State], A.[Number of Orders], A.[Total Price Order], A.[Average Price Order], A.[Nb HouseholdId], 
+        B.[PaymentType] AS [TopUsedPayment], D.[GroupName] AS [Top Product],
+	@cutoffdate AS [Cutoff Date]
 FROM A01087932_StateOrders(@cutoffdate) A
 JOIN A01087932_StateTopUsedPayment(@cutoffdate) B ON A.[State] = B.[State]
 JOIN A01087932_StateTopProduct(@cutoffdate) D ON D.[State] = A.[State]
@@ -362,11 +362,6 @@ WHERE A.[State] != ''
 );
 GO
 SELECT * FROM A01087932_StateSignature('2016-01-01') ORDER BY [State]
-
-
-
-
-
 
 
 
